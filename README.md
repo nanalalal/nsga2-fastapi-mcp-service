@@ -55,9 +55,7 @@ nsga2_integration/
 ├── tests/                  # Test tích hợp (không cần SUMO thật)
 │   ├── fake_evaluator.py
 │   └── test_jobs.py
-├── requirements_service.txt
-├── HUONG_DAN_CONG_VIEC_CHI_TIET.md
-└── HUONG_DAN_TICH_HOP.md
+└── requirements_service.txt
 ```
 
 ### `api/main.py`
@@ -186,12 +184,6 @@ giữ nguyên 100% (`python run_nsga2_v2.py --scenario S1 --pop_size 60
     `POST /jobs`, `/jobs/{id}/pareto` qua `TestClient`.
   - `TestMCPWiring::test_tools_smoke` — smoke test 3 tool MCP end-to-end.
   - Theo comment trong code: đã chạy PASSED 5/5 trong lúc xây scaffold.
-
-### Tài liệu đi kèm (đã có sẵn, không phải do README này tạo)
-- `HUONG_DAN_CONG_VIEC_CHI_TIET.md` — nhật ký/kế hoạch công việc chi tiết.
-- `HUONG_DAN_TICH_HOP.md` — hướng dẫn tích hợp service vào đồ án gốc
-  (bao gồm mục "Chia sẻ trạng thái giữa hai service" được nhắc tới nhiều
-  lần trong code).
 
 ## Trạng thái hiện tại (đọc từ code, không suy đoán thêm)
 
