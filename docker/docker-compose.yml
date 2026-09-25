@@ -1,0 +1,60 @@
+# docker-compose.yml — chạy đồng thời FastAPI + MCP server (HTTP transport)
+# dùng chung 1 image, 2 tiến trình, 1 volume kết quả.
+#
+# Chạy:
+#   cd docker
+#   docker compose up --build
+#
+# FastAPI:    http://localhost:8000/docs
+# MCP (HTTP): http://localhost:8765/mcp   (dùng cho MCP client hỗ trợ Streamable HTTP)
+#
+# CẢNH BÁO QUAN TRỌNG:
+#   - Mỗi service (api, mcp) chạy trong TIẾN TRÌNH RIÊNG, mỗi bên có
+#     JobManager (bộ nhớ) ĐỘC LẬP -> job tạo qua MCP không hiện trong
+#     danh sách job của FastAPI và ngược lại (xem HUONG_DAN_TICH_HOP.md
+#     mục "Chia sẻ trạng thái giữa hai service" nếu cần hợp nhất qua
+#     SQLite/Redis).
+#   - KHÔNG tăng "replicas" cho service api hay mcp: SUMOEvaluatorImproved
+#     dùng traci mặc định (một kết nối) và ghi output cố định theo
+#     scenario_id — chạy nhiều instance cùng lúc sẽ tranh chấp cổng/file.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nsga2-sumo-service:latest
+    container_name: nsga2_api
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - results_data:/app/results_service
+    environment:
+      NSGA2_PROJECT_SRC: /app/project_src
+      NSGA2_RESULTS_DIR: /app/results_service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nsga2-sumo-service:latest
+    container_name: nsga2_mcp
+    command: ["python3.10", "mcp_server/server.py", "--http", "--host", "0.0.0.0", "--port", "8765"]
+    ports:
+      - "8765:8765"
+    volumes:
+      - results_data:/app/results_service
+    environment:
+      NSGA2_PROJECT_SRC: /app/project_src
+      NSGA2_RESULTS_DIR: /app/results_service
+    restart: unless-stopped
+
+volumes:
+  results_data:

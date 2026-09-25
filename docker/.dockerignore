@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+results_service/
+project_src/__pycache__/
+sumo_model_s1/output/
+sumo_model_s2/output/
+sumo_model_s3/output/
+*.log
+.env

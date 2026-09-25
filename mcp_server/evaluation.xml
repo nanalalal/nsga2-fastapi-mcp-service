@@ -1,0 +1,44 @@
+<!--
+evaluation.xml — Bộ câu hỏi đánh giá cho nsga2_mcp, theo quy trình
+mcp-builder Phase 4 (Tool Inspection -> Content Exploration -> Question
+Generation -> Answer Verification).
+
+PHẠM VI: chỉ đưa vào đây các câu hỏi READ-ONLY, có đáp án CỐ ĐỊNH,
+KHÔNG PHỤ THUỘC NGẪU NHIÊN — tức là dựa trên nsga2_list_scenarios (đọc
+config.SCENARIOS tĩnh). Các tool có tác dụng phụ hoặc kết quả ngẫu
+nhiên (nsga2_start_optimization, nsga2_get_pareto_front — phụ thuộc
+seed/thời điểm chạy) KHÔNG phù hợp để đánh giá bằng string-comparison
+kiểu này (yêu cầu "Stable: đáp án không đổi theo thời gian" của
+mcp-builder). Chúng đã được kiểm thử bằng tests/test_jobs.py (integration
+test với FakeSUMOEvaluator) thay vì bằng bộ eval này.
+
+Chạy: theo hướng dẫn evaluation.md của mcp-builder skill (dùng MCP
+Inspector hoặc script eval đi kèm skill đó để cho một LLM tự gọi tool
+và so khớp câu trả lời).
+-->
+<evaluation>
+  <qa_pair>
+    <question>Trong hệ thống tối ưu tín hiệu giao thông NSGA-II/SUMO, kịch bản nào (S1, S2 hay S3) có lưu lượng xe theo giờ (total_hourly_demand) cao nhất?</question>
+    <answer>S3</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Lưu lượng xe theo giờ (total_hourly_demand) của kịch bản S3 là bao nhiêu?</question>
+    <answer>3600</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Có tổng cộng bao nhiêu kịch bản mô phỏng giao thông khả dụng trong hệ thống?</question>
+    <answer>3</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Nhãn mô tả (label) của kịch bản S2 là gì?</question>
+    <answer>Duoi_bao_hoa_bat_doi_xung</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Hai kịch bản nào có cùng lưu lượng xe theo giờ (total_hourly_demand) bằng nhau?</question>
+    <answer>S1 và S2</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Nhãn mô tả (label) của kịch bản có lưu lượng xe theo giờ bằng 3600 là gì?</question>
+    <answer>Gan_bao_hoa_bat_doi_xung</answer>
+  </qa_pair>
+</evaluation>

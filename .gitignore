@@ -1,0 +1,23 @@
+# --- Python / bytecode ---
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# --- Ket qua job cua service (tu sinh khi chay that, khong commit) ---
+results_service/
+
+# --- Build context Docker (copy tu prepare_context.ps1, KHONG commit ban sao) ---
+docker/project_src/
+docker/sumo_model_s1/
+docker/sumo_model_s2/
+docker/sumo_model_s3/
+
+# --- He dieu hanh / IDE ---
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

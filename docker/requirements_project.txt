@@ -1,0 +1,11 @@
+# Thư viện gốc của đồ án NSGA-II + SUMO (theo README.md gốc, mục 3.2).
+# traci/sumolib đi kèm cài đặt SUMO qua PPA trong Dockerfile — không cần
+# pip install ở đây vì Dockerfile đã thêm SUMO_HOME/tools vào PYTHONPATH.
+# Vẫn khai báo tường minh để `pip check` không báo thiếu nếu môi trường
+# khác không cài SUMO qua PPA (ví dụ máy dev không dùng Docker).
+
+pymoo>=0.6.0
+pandas>=1.5.0
+matplotlib>=3.6.0
+numpy>=1.23.0
+scipy>=1.9.0

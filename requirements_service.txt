@@ -1,0 +1,8 @@
+# Thư viện BỔ SUNG cần cài thêm cho service layer (FastAPI + MCP).
+# Vẫn cần cài đầy đủ requirements gốc của đồ án trước (xem README.md gốc):
+#   pip install pymoo pandas matplotlib numpy scipy traci sumolib
+
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+mcp[cli]>=1.2
