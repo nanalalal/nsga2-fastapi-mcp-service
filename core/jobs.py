@@ -25,7 +25,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 from nsga2_core import SCENARIOS, GenerationEvent, OptimizationResult, run_optimization, save_results
 
@@ -48,6 +48,9 @@ class Job:
     scenario: str
     pop_size: int
     n_gen_max: int
+    total_hourly_demand: Optional[float] = None
+    cycle_bounds: Optional[Tuple[float, float]] = None
+    green_bounds: Optional[Tuple[float, float]] = None
     status: JobStatus = JobStatus.PENDING
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     current_gen: int = 0
@@ -77,7 +80,15 @@ class JobManager:
     # API công khai
     # ------------------------------------------------------------------ #
 
-    def submit(self, scenario: str, pop_size: int = 60, n_gen_max: int = 30) -> Job:
+    def submit(
+        self,
+        scenario: str,
+        pop_size: int = 60,
+        n_gen_max: int = 30,
+        total_hourly_demand: Optional[float] = None,
+        cycle_bounds: Optional[Tuple[float, float]] = None,
+        green_bounds: Optional[Tuple[float, float]] = None,
+    ) -> Job:
         """Tạo job mới và đưa vào hàng đợi thực thi (không block).
 
         Validate `scenario` ngay tại đây (không chỉ dựa vào lớp gọi như
@@ -88,6 +99,10 @@ class JobManager:
         raise KeyError, bị nuốt vào except trong _run_job() thành
         status="failed" với error cụt lủn kiểu "'S9'".
 
+        total_hourly_demand / cycle_bounds / green_bounds: ghi đè tham số
+        (KHÔNG phải cấu hình mạng lưới SUMO — network topology vẫn cố định
+        theo scenario). None = dùng mặc định gốc, hành vi không đổi.
+
         Raises:
             ValueError: Nếu `scenario` không có trong config.SCENARIOS.
         """
@@ -97,7 +112,15 @@ class JobManager:
                 f"config.SCENARIOS: {list(SCENARIOS)}."
             )
         job_id = uuid.uuid4().hex[:12]
-        job = Job(job_id=job_id, scenario=scenario, pop_size=pop_size, n_gen_max=n_gen_max)
+        job = Job(
+            job_id=job_id,
+            scenario=scenario,
+            pop_size=pop_size,
+            n_gen_max=n_gen_max,
+            total_hourly_demand=total_hourly_demand,
+            cycle_bounds=cycle_bounds,
+            green_bounds=green_bounds,
+        )
         with self._lock:
             self._jobs[job_id] = job
         self._executor.submit(self._run_job, job_id)
@@ -151,6 +174,9 @@ class JobManager:
                 scenario=job.scenario,
                 pop_size=job.pop_size,
                 n_gen_max=job.n_gen_max,
+                total_hourly_demand=job.total_hourly_demand,
+                cycle_bounds=job.cycle_bounds,
+                green_bounds=job.green_bounds,
                 on_generation=on_generation,
                 should_cancel=should_cancel,
             )

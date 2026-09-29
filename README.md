@@ -217,14 +217,23 @@ giữ nguyên 100% (`python run_nsga2_v2.py --scenario S1 --pop_size 60
 | `scenario` | `str` | bắt buộc | Phải thuộc `config.SCENARIOS` (hiện `S1`/`S2`/`S3`) — kiểm tra thủ công, không phải Pydantic `Literal` |
 | `pop_size` | `int` | `60` | `4 ≤ pop_size ≤ 500` |
 | `n_gen_max` | `int` | `30` | `1 ≤ n_gen_max ≤ 200` |
+| `total_hourly_demand` | `float`, optional | giá trị gốc của `scenario` | `> 0` — ghi đè lưu lượng xe/giờ (thêm 2026-09-29, xem `api/schemas.py::OptimizeRequest`) |
+| `cycle_min` / `cycle_max` | `float`, optional | `60` / `120` | `> 0` — ghi đè bounds chu kỳ đèn C [giây] |
+| `green_min` / `green_max` | `float`, optional | `15` / `90` | `> 0` — ghi đè bounds thời gian xanh mỗi pha [giây] |
 | `seed` | `int` | `42` | Cố định trong `run_optimization()` — **chưa** có field tương ứng ở `OptimizeRequest`/`StartOptimizationInput`, không đổi được qua request |
 | `response_format` (chỉ `nsga2_get_pareto_front`) | `"markdown"` \| `"json"` | `"markdown"` | — |
+
+**Lưu ý quan trọng — tham số vs. hạ tầng:** `total_hourly_demand`/`cycle_*`/`green_*`
+là THAM SỐ, chỉnh được qua request mà không cần sửa code. Ngược lại, **network
+topology của SUMO** (số giao lộ, hình học đường — hiện cố định 2 giao lộ J1/J2)
+là INPUT HẠ TẦNG, dựng thủ công trong SUMO cho từng kịch bản — muốn áp dụng cho
+giao lộ khác phải xây model SUMO mới (không phải việc sửa API/service).
 
 ## Giới hạn khác cần biết (ngoài 4 điểm đã liệt kê ở mục Trạng thái)
 
 - **Không có xác thực (auth) hay rate-limit**: ai gọi được tới cổng `8000`/`8765` đều dùng được toàn bộ API/MCP — chỉ phù hợp chạy cục bộ/demo, chưa sẵn sàng public.
 - **Huỷ job không tức thời**: `nsga2_cancel_job`/`POST /jobs/{id}/cancel` chỉ đặt cờ — job dừng thật sau khi mô phỏng SUMO của thế hệ hiện tại chạy xong, không ngắt `traci` giữa chừng.
-- **Chỉ đúng 3 kịch bản định sẵn**: không nhận `scenario` tuỳ ý hay override `total_hourly_demand`/đường dẫn SUMO qua request — muốn thêm kịch bản chỉ cần sửa `config.SCENARIOS` bên repo lõi (không cần sửa code service).
+- **Chỉ đúng 3 kịch bản định sẵn (về network topology)**: không nhận `scenario` tuỳ ý hay đường dẫn SUMO qua request — vì mỗi kịch bản gắn với một model mạng lưới SUMO dựng thủ công (`sumo_model_s1/s2/s3`), không thể tuỳ biến qua request. `total_hourly_demand` VÀ bounds của 6 biến quyết định (`cycle_min/max`, `green_min/max`) THÌ đã ghi đè được qua request kể từ 2026-09-29 (xem bảng "Tham số và ràng buộc đầy đủ" ở trên) — muốn thêm kịch bản network mới vẫn chỉ cần sửa `config.SCENARIOS` bên repo lõi (không cần sửa code service).
 
 ## Cấu hình MCP client (Claude Desktop / Claude Code) — chạy qua stdio
 

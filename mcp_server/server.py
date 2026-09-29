@@ -84,6 +84,16 @@ class StartOptimizationInput(BaseModel):
         description="Số thế hệ tối đa. Mặc định 30. Thuật toán có thể dừng sớm hơn "
         "nếu Hypervolume không cải thiện (early stopping).",
     )
+    total_hourly_demand: float | None = Field(
+        default=None,
+        gt=0,
+        description="Ghi đè lưu lượng xe/giờ (mặc định: giá trị gốc của kịch bản). "
+        "KHÔNG đổi mạng lưới SUMO (số giao lộ, hình học đường) — chỉ đổi lưu lượng.",
+    )
+    cycle_min: float | None = Field(default=None, gt=0, description="Ghi đè cận dưới chu kỳ đèn C [giây] (mặc định 60).")
+    cycle_max: float | None = Field(default=None, gt=0, description="Ghi đè cận trên chu kỳ đèn C [giây] (mặc định 120).")
+    green_min: float | None = Field(default=None, gt=0, description="Ghi đè cận dưới thời gian xanh mỗi pha [giây] (mặc định 15).")
+    green_max: float | None = Field(default=None, gt=0, description="Ghi đè cận trên thời gian xanh mỗi pha [giây] (mặc định 90).")
 
 
 class JobIdInput(BaseModel):
@@ -211,6 +221,15 @@ def nsga2_start_optimization(params: StartOptimizationInput) -> str:
             - scenario (str): "S1" | "S2" | "S3"
             - pop_size (int): kích thước quần thể, mặc định 60
             - n_gen_max (int): số thế hệ tối đa, mặc định 30
+            - total_hourly_demand (float, optional): ghi đè lưu lượng xe/giờ
+              của kịch bản (mặc định: giá trị gốc trong config.SCENARIOS)
+            - cycle_min/cycle_max (float, optional): ghi đè cận dưới/trên
+              chu kỳ đèn C [giây] (mặc định 60/120)
+            - green_min/green_max (float, optional): ghi đè cận dưới/trên
+              thời gian xanh mỗi pha [giây] (mặc định 15/90)
+            LƯU Ý: đây là THAM SỐ, không phải cấu hình mạng lưới SUMO — số
+            giao lộ và hình học đường vẫn cố định theo scenario, không đổi
+            được qua tool này.
 
     Returns:
         str: JSON object:
@@ -236,7 +255,20 @@ def nsga2_start_optimization(params: StartOptimizationInput) -> str:
             f"Kịch bản '{params.scenario}' không hợp lệ.",
             f"Các kịch bản hợp lệ: {list(SCENARIOS)}. Gọi nsga2_list_scenarios để xem chi tiết.",
         )
-    job = job_manager.submit(params.scenario, params.pop_size, params.n_gen_max)
+    cycle_bounds = None
+    if params.cycle_min is not None or params.cycle_max is not None:
+        cycle_bounds = (params.cycle_min or 60.0, params.cycle_max or 120.0)
+    green_bounds = None
+    if params.green_min is not None or params.green_max is not None:
+        green_bounds = (params.green_min or 15.0, params.green_max or 90.0)
+    job = job_manager.submit(
+        params.scenario,
+        params.pop_size,
+        params.n_gen_max,
+        total_hourly_demand=params.total_hourly_demand,
+        cycle_bounds=cycle_bounds,
+        green_bounds=green_bounds,
+    )
     return json.dumps(
         {"job_id": job.job_id, "status": job.status.value, "scenario": job.scenario},
         indent=2, ensure_ascii=False,

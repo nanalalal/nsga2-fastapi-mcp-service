@@ -66,6 +66,35 @@ def _wait_until_terminal(job_manager, job_id, timeout_s: float = 30.0):
     raise TimeoutError(f"Job {job_id} không kết thúc sau {timeout_s}s")
 
 
+class TestProblemBounds:
+    """Unit test không cần SUMO/FakeSUMOEvaluator — kiểm tra riêng
+    ProblemV2_HonestObjective nhận custom bounds đúng, và mặc định
+    GIỐNG HỆT bounds gốc (an toàn cho M3-4: so sánh CLI gốc vs service)."""
+
+    def _make_problem(self, **kwargs):
+        import sys, os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+        from core.bootstrap import setup_project_path
+        setup_project_path()
+        from problem_v2_honest import ProblemV2_HonestObjective
+        from fake_evaluator import FakeSUMOEvaluator
+
+        return ProblemV2_HonestObjective(evaluator=FakeSUMOEvaluator(), **kwargs)
+
+    def test_default_bounds_unchanged(self):
+        import numpy as np
+        problem = self._make_problem()
+        np.testing.assert_array_equal(problem.xl, [60.0, 15.0, 15.0, 15.0, 15.0, 0.0])
+        np.testing.assert_array_equal(problem.xu, [120.0, 90.0, 90.0, 90.0, 90.0, 119.0])
+
+    def test_custom_bounds_applied(self):
+        import numpy as np
+        problem = self._make_problem(cycle_bounds=(70.0, 100.0), green_bounds=(20.0, 80.0))
+        np.testing.assert_array_equal(problem.xl, [70.0, 20.0, 20.0, 20.0, 20.0, 0.0])
+        # O2 upper bound phải = cycle_max - 1, tính động theo cycle_bounds mới
+        np.testing.assert_array_equal(problem.xu, [100.0, 80.0, 80.0, 80.0, 80.0, 99.0])
+
+
 class TestJobManager:
     def test_submit_and_complete(self, job_manager):
         job = job_manager.submit("S1", pop_size=8, n_gen_max=2)
@@ -101,6 +130,31 @@ class TestJobManager:
         assert job2_final.status.value in ("cancelled", "done")
         # done chấp nhận được nếu job2 kịp bắt đầu trước khi cancel có hiệu lực —
         # hành vi phụ thuộc thời điểm; điều quan trọng là không "failed"/"pending" mãi.
+
+    def test_submit_with_parameter_overrides(self, job_manager):
+        """total_hourly_demand/cycle_bounds/green_bounds phải được lưu trên Job
+        VÀ thực sự truyền xuống run_optimization() -> Problem (không bị rơi
+        dọc đường qua submit() -> _run_job() -> run_optimization())."""
+        job = job_manager.submit(
+            "S1",
+            pop_size=8,
+            n_gen_max=2,
+            total_hourly_demand=3000,
+            cycle_bounds=(70.0, 100.0),
+            green_bounds=(20.0, 80.0),
+        )
+        # Lưu đúng trên Job ngay khi submit (không cần đợi job chạy xong)
+        assert job.total_hourly_demand == 3000
+        assert job.cycle_bounds == (70.0, 100.0)
+        assert job.green_bounds == (20.0, 80.0)
+
+        final = _wait_until_terminal(job_manager, job.job_id)
+        assert final.status.value == "done", final.error
+        assert final.pareto_size > 0
+        # Kịch bản khác (S1, không override) vẫn phải chạy đúng như cũ —
+        # đảm bảo override không có side-effect toàn cục (không mutate SCENARIOS).
+        from nsga2_core import SCENARIOS
+        assert SCENARIOS["S1"]["total_hourly_demand"] == 2000
 
 
 class TestFastAPIWiring:

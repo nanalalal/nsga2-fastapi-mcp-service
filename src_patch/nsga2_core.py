@@ -26,7 +26,7 @@ NGUYÊN VẸN so với run_nsga2_v2.py gốc — chỉ di chuyển vị trí.
 # Standard library
 import os
 from dataclasses import dataclass
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 # Third-party
 import numpy as np
@@ -379,6 +379,9 @@ def run_optimization(
     pop_size: int = 60,
     n_gen_max: int = 30,
     seed: int = 42,
+    total_hourly_demand: Optional[float] = None,
+    cycle_bounds: Optional[Tuple[float, float]] = None,
+    green_bounds: Optional[Tuple[float, float]] = None,
     on_generation: Optional[Callable[[GenerationEvent], None]] = None,
     should_cancel: Optional[Callable[[], bool]] = None,
 ) -> OptimizationResult:
@@ -392,6 +395,13 @@ def run_optimization(
         pop_size: Kích thước quần thể NSGA-II.
         n_gen_max: Số thế hệ tối đa trước khi dừng (có thể dừng sớm hơn).
         seed: Seed ngẫu nhiên cho pymoo — cố định để tái lập kết quả.
+        total_hourly_demand: Ghi đè lưu lượng xe/giờ của kịch bản (mặc định
+            lấy từ config.SCENARIOS[scenario] nếu không truyền). Tham số
+            CÓ THỂ chỉnh — không cần model SUMO mới.
+        cycle_bounds: Ghi đè (min, max) chu kỳ đèn chung C [giây] (mặc định
+            (60, 120), giống hệt bounds gốc nếu không truyền).
+        green_bounds: Ghi đè (min, max) thời gian xanh mỗi pha [giây] (mặc
+            định (15, 90), giống hệt bounds gốc nếu không truyền).
         on_generation: Callback gọi sau MỖI thế hệ với một GenerationEvent.
             Dùng để báo tiến độ real-time cho client (ví dụ JobManager
             trong service layer cập nhật trạng thái job).
@@ -415,12 +425,18 @@ def run_optimization(
         raise KeyError(f"Kịch bản '{scenario}' không tồn tại. Có: {list(SCENARIOS)}")
 
     scen = SCENARIOS[scenario]
+    demand = total_hourly_demand if total_hourly_demand is not None else scen["total_hourly_demand"]
     sumo_runner = SUMOEvaluatorImproved(
         sumo_config_path=scen["sumo_cfg"],
-        total_hourly_demand=scen["total_hourly_demand"],
+        total_hourly_demand=demand,
         scenario_id=scenario,
     )
-    problem = ProblemV2_HonestObjective(evaluator=sumo_runner)
+    problem_kwargs = {}
+    if cycle_bounds is not None:
+        problem_kwargs["cycle_bounds"] = cycle_bounds
+    if green_bounds is not None:
+        problem_kwargs["green_bounds"] = green_bounds
+    problem = ProblemV2_HonestObjective(evaluator=sumo_runner, **problem_kwargs)
     repair_v2 = TrafficSignalRepairImproved()
 
     algorithm = NSGA2WithDiversityInfill(

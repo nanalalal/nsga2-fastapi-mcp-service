@@ -63,6 +63,9 @@ def _job_to_response(job) -> JobStatusResponse:
         scenario=job.scenario,
         pop_size=job.pop_size,
         n_gen_max=job.n_gen_max,
+        total_hourly_demand=job.total_hourly_demand,
+        cycle_bounds=job.cycle_bounds,
+        green_bounds=job.green_bounds,
         status=job.status.value,
         current_gen=job.current_gen,
         hv=job.hv,
@@ -88,7 +91,14 @@ def create_job(req: OptimizeRequest):
     """Tạo job NSGA-II mới. Trả về NGAY (không đợi chạy xong) với status=pending."""
     if req.scenario not in SCENARIOS:
         raise HTTPException(400, f"Kịch bản không hợp lệ. Có: {list(SCENARIOS)}")
-    job = job_manager.submit(req.scenario, req.pop_size, req.n_gen_max)
+    job = job_manager.submit(
+        req.scenario,
+        req.pop_size,
+        req.n_gen_max,
+        total_hourly_demand=req.total_hourly_demand,
+        cycle_bounds=req.cycle_bounds(),
+        green_bounds=req.green_bounds(),
+    )
     return _job_to_response(job)
 
 
