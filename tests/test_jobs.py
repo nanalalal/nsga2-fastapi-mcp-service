@@ -10,7 +10,7 @@ SUMO thật. Đã chạy thành công trong quá trình xây dựng scaffold nà
 Chạy:
     cd <thư mục chứa core/, api/, mcp_server/, tests/>
     export NSGA2_PROJECT_SRC=/path/to/DoAn_NSGA2_SUMO/src   # (Linux/macOS)
-    # hoặc PowerShell:  $env:NSGA2_PROJECT_SRC = "D:\DoAn_NSGA2_SUMO\src"
+    # hoặc PowerShell:  $env:NSGA2_PROJECT_SRC = "<PATH_TO_PROJECT>\DoAn_NSGA2_SUMO\src"
     pip install pytest
     pytest tests/test_jobs.py -v -s
 

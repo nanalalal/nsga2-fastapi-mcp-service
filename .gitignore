@@ -21,3 +21,8 @@ Thumbs.db
 .DS_Store
 .vscode/
 .idea/
+
+# --- File rac do redirect '>' nham trong PowerShell/cmd khi go 'pip install x>=y.z' ---
+# (thieu dau ngoac kep quanh 'x>=y.z' khien shell hieu '>' la redirect output)
+0.*
+=*

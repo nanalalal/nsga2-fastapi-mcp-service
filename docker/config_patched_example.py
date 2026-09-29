@@ -5,7 +5,7 @@ config_patched_example.py
 VÍ DỤ sửa config.py gốc để hết hardcode đường dẫn Windows tuyệt đối —
 điều kiện BẮT BUỘC để chạy được trong Docker (Linux). Đây là bản THAM
 KHẢO, không tự động ghi đè config.py của bạn — copy nội dung phù hợp
-vào D:\DoAn_NSGA2_SUMO\src\config.py sau khi đã hiểu rõ thay đổi.
+vào <PATH_TO_PROJECT>\DoAn_NSGA2_SUMO\src\config.py sau khi đã hiểu rõ thay đổi.
 
 Nguyên tắc: đường dẫn sumo_cfg tính TƯƠNG ĐỐI theo vị trí file config.py
 (os.path.dirname(__file__)) thay vì hardcode "D:\\DoAn_NSGA2_VISSIM\\...".

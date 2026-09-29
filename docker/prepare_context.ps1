@@ -3,7 +3,7 @@
 # Chuẩn bị build context cho Docker: copy mã nguồn GỐC của đồ án (src/,
 # sumo_model_s1..s3/) vào thư mục docker/ để Dockerfile COPY được — Docker
 # build KHÔNG đọc được file ngoài build context (ví dụ không thể COPY
-# trực tiếp D:\DoAn_NSGA2_SUMO\src vào image nếu Dockerfile nằm ở chỗ khác).
+# trực tiếp <PATH_TO_PROJECT>\DoAn_NSGA2_SUMO\src vào image nếu Dockerfile nằm ở chỗ khác).
 #
 # Chạy từ PowerShell, đứng trong thư mục docker/:
 #   cd D:\đường_dẫn_tới_service\docker
@@ -15,7 +15,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$ProjectRoot = "D:\DoAn_NSGA2_SUMO"
+$ProjectRoot = "<PATH_TO_PROJECT>\DoAn_NSGA2_SUMO"
 $ScriptDir   = $PSScriptRoot
 
 Write-Host "Copy $ProjectRoot\src -> $ScriptDir\project_src ..."

@@ -1,8 +1,8 @@
 # Dockerfile — đóng gói FastAPI + MCP server + SUMO cho đồ án NSGA-II/SUMO.
 #
 # Build context PHẢI chứa (xem docker/prepare_context.ps1 để tự copy):
-#   docker/project_src/        <- copy từ D:\DoAn_NSGA2_SUMO\src
-#   docker/sumo_model_s1/      <- copy từ D:\DoAn_NSGA2_SUMO\sumo_model_s1
+#   docker/project_src/        <- copy từ <PATH_TO_PROJECT>\DoAn_NSGA2_SUMO\src
+#   docker/sumo_model_s1/      <- copy từ <PATH_TO_PROJECT>\DoAn_NSGA2_SUMO\sumo_model_s1
 #   docker/sumo_model_s2/, docker/sumo_model_s3/  <- tương tự
 #   requirements_project.txt   <- pymoo, traci, sumolib, pandas, matplotlib, numpy, scipy
 #   requirements_service.txt   <- fastapi, uvicorn, pydantic, mcp[cli]

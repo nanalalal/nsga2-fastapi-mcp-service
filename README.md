@@ -1,7 +1,7 @@
 # NSGA-II + SUMO — Service Layer (FastAPI + MCP)
 
 Lớp "service" bọc quanh đồ án tối ưu tín hiệu giao thông NSGA-II + SUMO
-(mã nguồn gốc tại `D:\DoAn_NSGA2_SUMO\src`), expose ra ngoài qua **REST API
+(mã nguồn gốc tại `<PATH_TO_PROJECT>\DoAn_NSGA2_SUMO\src`), expose ra ngoài qua **REST API
 (FastAPI)** và **MCP server** (để LLM/Claude gọi trực tiếp như tool).
 
 > **Repo lõi thuật toán (bắt buộc để chạy):** [nsga2-sumo-traffic-optimization](https://github.com/nanalalal/nsga2-sumo-traffic-optimization) —
@@ -161,7 +161,7 @@ giữ nguyên 100% (`python run_nsga2_v2.py --scenario S1 --pop_size 60
   cảnh báo rõ: mỗi service có `JobManager` độc lập, và **không** được tăng
   `replicas` (tranh chấp cổng TraCI/ghi đè file output).
 - **prepare_context.ps1**: script PowerShell chuẩn bị build context (copy
-  `project_src/` + `sumo_model_s1..3/` từ `D:\DoAn_NSGA2_SUMO` vào `docker/`).
+  `project_src/` + `sumo_model_s1..3/` từ `<PATH_TO_PROJECT>\DoAn_NSGA2_SUMO` vào `docker/`).
 - **config_patched_example.py**: bản VÍ DỤ sửa `config.py` gốc để đường dẫn
   `sumo_cfg` tính tương đối theo vị trí file thay vì hardcode path Windows —
   điều kiện bắt buộc để chạy trong container Linux. Chỉ là tài liệu tham
@@ -254,7 +254,7 @@ giao lộ khác phải xây model SUMO mới (không phải việc sửa API/ser
 
 ### 1. Khai báo biến môi trường (bắt buộc, trước mọi lệnh dưới đây)
 ```powershell
-setx NSGA2_PROJECT_SRC "D:\DoAn_NSGA2_SUMO\src"
+setx NSGA2_PROJECT_SRC "<PATH_TO_PROJECT>\DoAn_NSGA2_SUMO\src"
 # mở lại terminal sau khi setx
 ```
 
